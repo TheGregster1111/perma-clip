@@ -1,5 +1,4 @@
-imports.gi.versions.Gtk = '4.0';
-let { GObject, Gtk, Gio, Adw } = imports.gi;
+const { GObject, Gtk, Gio, Adw } = imports.gi;
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 
 let selected = 0;
@@ -15,32 +14,14 @@ function update (dropDown, input1Buffer, input2Buffer, grid, clip, clipNames, in
 	}
 }
 
-function init () {}
-
-function getSettings()
+function init () 
 {
-	let GioSSS = Gio.SettingsSchemaSource;
-	let schemaSource = GioSSS.new_from_directory(
-		Me.dir.get_child("schemas").get_path(),
-		GioSSS.get_default(),
-		false
-	);
-	let schemaObj = schemaSource.lookup(
-		'org.gnome.shell.extensions.perma-clip',
-		true
-	);
 
-	if (!schemaObj)
-	{
-		throw new Error('Cannot find schemas');
-	}
-
-	return new Gio.Settings({ settings_schema : schemaObj });
 }
 
 function fillPreferencesWindow(window)
 {
-    let settings = getSettings();
+    let settings = imports.misc.extensionUtils.getSettings();
 	let clip = settings.get_strv('clip')
 	let clipNames = settings.get_strv('clipnames')
 
@@ -51,16 +32,10 @@ function fillPreferencesWindow(window)
 	grid.set_row_homogeneous(true);
 	grid.set_column_homogeneous(true);
 
-    /* for (let i = 0; i < 2; i += 1)
-    {
-        grid.insert_column(0);
-        grid.insert_row(0);
-    } */
-
     let dropDown = Gtk.DropDown.new_from_strings(Array.from({ length: 10 }, (v, i) => clipNames[i] )); //Have to do it this way for some reason.
     grid.attach(dropDown, 4, 1, 2, 1);
 
-	let emptyLabel1 = new Gtk.Label();
+	let emptyLabel1 = new Gtk.Label();	//emptyLabelN items add space between menu items.
 	grid.attach(emptyLabel1, 0, 2, 1, 1);
 
     let input1 = new Gtk.Entry();
@@ -82,13 +57,15 @@ function fillPreferencesWindow(window)
 
 	let button = new Gtk.Button();
 	button.set_label("Submit");
-	button.connect('clicked', () => {
+	button.connect('clicked', 
+	() => { //Update dropdown menu to match new clipNames and update database.
 		clipNames[selected] = input1Buffer.get_text();
 		clip[selected] = input2Buffer.get_text(input2Buffer.get_start_iter(), input2Buffer.get_end_iter(), false);
 		settings.set_strv('clip', clip);
 		settings.set_strv('clipnames', clipNames);
+
 		grid.remove(dropDown);
-		dropDown = Gtk.DropDown.new_from_strings(Array.from({ length: 10 }, (v, i) => clipNames[i] )); //Temp
+		dropDown = Gtk.DropDown.new_from_strings(Array.from({ length: 10 }, (v, i) => clipNames[i] ));
 		grid.attach(dropDown, 4, 1, 2, 1);
 		dropDown.set_selected(selected);
 	});
@@ -96,7 +73,8 @@ function fillPreferencesWindow(window)
 
 	interval = setInterval(() => update(dropDown, input1Buffer, input2Buffer, grid, clip, clipNames, interval), 100);
 
-    window.connect('close-request', () => {
+    window.connect('close-request', 
+	() => {
 		clearInterval(interval);
 	});
 

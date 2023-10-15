@@ -4,14 +4,6 @@
     <schema id="org.gnome.shell.extensions.perma-clip"
         path="/org/gnome/shell/extensions/perma-clip/">
 
-        <key type="as" name="shortcut">
-			<default><![CDATA[['<Super>t']]]></default>
-			<summary>Shortcut</summary>
-			<description>
-				Unused
-			</description>
-        </key>
-
 		<key type="as" name="clip">
 			<default>['', '', '', '', '', '', '', '', '', '']</default>
 			<summary>Clipboards</summary>
@@ -27,6 +19,7 @@
 				Unused
 			</description>
         </key>
+		
 	</schema>
 
 </schemalist>

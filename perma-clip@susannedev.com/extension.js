@@ -1,107 +1,89 @@
 const Me = imports.misc.extensionUtils.getCurrentExtension();
 const check = imports.ui;
 const { Meta, Gio, Shell, Clutter, St, GLib } = imports.gi;
-const Adw = imports.gi;
 const Main = imports.ui.main;
 const BoxPointer = imports.ui.boxpointer;
 const PopupMenu = imports.ui.popupMenu;
 const PanelMenu = imports.ui.panelMenu;
 
-//const sourceActor = new St.Widget();
-//const menu = new PopupMenu.PopupMenu(sourceActor, 0.0, St.Side.TOP);
-//const menuItem = new PopupMenu.PopupMenuItem('Menu Item');
 let panelIcon;
 let scrollView;
 let menu;
-const clipboard = St.Clipboard.get_default();
+let clipboard;
 let interval;
+let timeoutId;
+let virtualKeyboard;
 
-let virtualKeyboard = null;
-const getVirtualKeyboard = () => {
-	if (virtualKeyboard) {
-		return virtualKeyboard;
-	}
-	virtualKeyboard = Clutter.get_default_backend().get_default_seat().create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
-	return virtualKeyboard;
-};
+let settings;
+let clip;
+let clipNames;
 
 function init() {}
 
-function getSettings()
+function updateCheck ()
 {
-	let GioSSS = Gio.SettingsSchemaSource;
-	let schemaSource = GioSSS.new_from_directory(
-		Me.dir.get_child("schemas").get_path(),
-		GioSSS.get_default(),
-		false
-	);
-	let schemaObj = schemaSource.lookup(
-		'org.gnome.shell.extensions.perma-clip',
-		true
-	);
-
-	if (!schemaObj)
+	let tempClip = settings.get_strv('clip');
+	let tempClipNames = settings.get_strv('clipnames');
+	
+	for (let i = 0; i < clip.length; i += 1)
 	{
-		throw new Error('Cannot find schemas');
+		if (tempClip[i] !== clip[i])
+		{
+			updateList();
+			return;
+		}
 	}
 
-	return new Gio.Settings({ settings_schema : schemaObj });
+	for (let i = 0; i < clipNames.length; i += 1)
+	{
+
+		if (tempClipNames[i] !== clipNames[i])
+		{
+			updateList();
+			return;
+		}
+	}
 }
 
 function updateList()
 {
-	let settings = getSettings();
-	let clip = settings.get_strv('clip')
-	let clipNames = settings.get_strv('clipnames')
+	settings = imports.misc.extensionUtils.getSettings();
+	clip = settings.get_strv('clip');
+	clipNames = settings.get_strv('clipnames');
 	
 	menu.removeAll();
 
 	menu.addAction("Edit", () => {
-		imports.misc.extensionUtils.openPrefs();
+		openPrefs();
 	});
 
 	for (let i = 0; i < 10; i++) {
 		menu.addAction(clipNames[i], () => {
-			getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Escape, Clutter.KeyState.PRESSED);
-			getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Escape, Clutter.KeyState.RELEASED);
+			virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Escape, Clutter.KeyState.PRESSED);
+			virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Escape, Clutter.KeyState.RELEASED);
 			clipboard.set_text(St.ClipboardType.CLIPBOARD, clip[i]);
-			this.timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
-				getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.RELEASED);
-				getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.RELEASED);
+			timeoutId = GLib.timeout_add(GLib.PRIORITY_DEFAULT, 150, () => {
+				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.RELEASED);
+				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.RELEASED);
 
-				getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.PRESSED);
-				getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.PRESSED);
-				getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.RELEASED);
-				getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.RELEASED);
-				if (this.timeoutId) {
-					GLib.Source.remove(this.timeoutId);
-				}
-				this.timeoutId = undefined;
+				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.PRESSED);
+				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.PRESSED);
+				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.RELEASED);
+				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.RELEASED);
+
 				return GLib.SOURCE_REMOVE;
 			});
 		});
 	}
 }
 
-//UNUSED
-function showContextMenu() {
-	getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.RELEASED);
-	getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.PRESSED);
-	getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.PRESSED);
-	getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.RELEASED);
-	getVirtualKeyboard().notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.RELEASED);
-}
-
 function enable()
 {
-	/* for (let importName in imports.misc.extensionUtils) {
-		log(importName);
-	} */
-
-	let mode = Shell.ActionMode.ALL;
-	let flag = Meta.KeyBindingFlags.NONE;
-	//Main.wm.addKeybinding("shortcut", settings, flag, mode, showContextMenu);
-
+	// Get user clipboard and create virtual keyboard
+	clipboard = St.Clipboard.get_default();
+	virtualKeyboard = Clutter.get_default_backend().get_default_seat().create_virtual_device(Clutter.InputDeviceType.KEYBOARD_DEVICE);
+	// Get user clipboard and create virtual keyboard
+	
 
 	// Fix menu
 	panelIcon = new PanelMenu.Button(0.0, 'Perma Clip', false);
@@ -110,7 +92,7 @@ function enable()
 
 	const icon = new St.Icon({
 		icon_name: 'emblem-documents',
-		style_class: 'system-status-icon',
+		style_class: 'system-status-icon'
 	});
 	panelIcon.add_child(icon);
 	scrollView.add_actor(menu.actor);
@@ -118,7 +100,7 @@ function enable()
 	
 	updateList();
 
-	interval = setInterval(() => updateList(), 500);
+	interval = setInterval(() => updateCheck(), 200);
 	// Fix menu
 
 	// Add the indicator to the panel
@@ -127,8 +109,16 @@ function enable()
 
 function disable()
 {
-	panelIcon?.destroy();
+	panelIcon.destroy();
     panelIcon = null;
-	//Main.wm.removeKeybinding("shortcut");
+	scrollView.destroy();
+	scrollView = null;
+	menu.destroy();
+    menu = null;
+    virtualKeyboard = null;
+	clipboard = null;
 	clearInterval(interval);
+	if (timeoutId) {
+		GLib.Source.remove(timeoutId);
+	}
 }
