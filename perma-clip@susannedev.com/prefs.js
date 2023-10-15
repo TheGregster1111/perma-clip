@@ -1,5 +1,6 @@
 const { GObject, Gtk, Gio, Adw } = imports.gi;
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+const extensionUtils = imports.misc.extensionUtils;
+const Me = extensionUtils.getCurrentExtension();
 
 let selected = 0;
 let interval;
@@ -21,7 +22,7 @@ function init ()
 
 function fillPreferencesWindow(window)
 {
-    let settings = imports.misc.extensionUtils.getSettings();
+    let settings = extensionUtils.getSettings();
 	let clip = settings.get_strv('clip')
 	let clipNames = settings.get_strv('clipnames')
 

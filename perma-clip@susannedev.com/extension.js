@@ -1,4 +1,5 @@
-const Me = imports.misc.extensionUtils.getCurrentExtension();
+const extensionUtils = imports.misc.extensionUtils;
+const Me = extensionUtils.getCurrentExtension();
 const check = imports.ui;
 const { Meta, Gio, Shell, Clutter, St, GLib } = imports.gi;
 const Main = imports.ui.main;
@@ -47,14 +48,14 @@ function updateCheck ()
 
 function updateList()
 {
-	settings = imports.misc.extensionUtils.getSettings();
+	settings = extensionUtils.getSettings();
 	clip = settings.get_strv('clip');
 	clipNames = settings.get_strv('clipnames');
 	
 	menu.removeAll();
 
 	menu.addAction("Edit", () => {
-		openPrefs();
+		extensionUtils.openPrefs();
 	});
 
 	for (let i = 0; i < 10; i++) {
@@ -67,8 +68,10 @@ function updateList()
 				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.RELEASED);
 
 				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.PRESSED);
+				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Shift_L, Clutter.KeyState.PRESSED);
 				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.PRESSED);
 				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Control_L, Clutter.KeyState.RELEASED);
+				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_Shift_L, Clutter.KeyState.RELEASED);
 				virtualKeyboard.notify_keyval(Clutter.get_current_event_time(), Clutter.KEY_v, Clutter.KeyState.RELEASED);
 
 				return GLib.SOURCE_REMOVE;
