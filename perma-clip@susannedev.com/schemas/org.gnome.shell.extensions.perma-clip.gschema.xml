@@ -4,22 +4,22 @@
     <schema id="org.gnome.shell.extensions.perma-clip"
         path="/org/gnome/shell/extensions/perma-clip/">
 
-		<key type="as" name="clip">
-			<default>['', '', '', '', '', '', '', '', '', '']</default>
-			<summary>Clipboards</summary>
-			<description>
-				Unused
-			</description>
+        <key type="as" name="clip">
+            <default>['', '', '', '', '', '', '', '', '', '']</default>
+            <summary>Clipboards</summary>
+            <description>
+                Unused
+            </description>
         </key>
 
-		<key type="as" name="clipnames">
-			<default>['Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed']</default>
-			<summary>Clipboard descriptions</summary>
-			<description>
-				Unused
-			</description>
+        <key type="as" name="clipnames">
+            <default>['Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed', 'Unnamed']</default>
+            <summary>Clipboard descriptions</summary>
+            <description>
+                Unused
+            </description>
         </key>
-		
-	</schema>
+        
+    </schema>
 
 </schemalist>
